@@ -2,6 +2,7 @@ import React from 'react';
 import Hero from '../../components/customer/HeroBanner';
 import SearchBar from '../../components/SearchBar';
 import Destination from './Destination';
+import TestimonialCard from '../../components/customer/TestimonialCard';
 
 const Home = () => {
   return (
@@ -14,6 +15,7 @@ const Home = () => {
 
       {/* 3. Popular Destinations Grid */}
       <Destination />
+      <TestimonialCard/>
     </div>
   );
 };

@@ -9,6 +9,7 @@ import {
   FaEnvelope,
   FaPaperPlane,
 } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
   return (
@@ -18,8 +19,8 @@ const Footer = () => {
           
           {/* Column 1: Brand Info */}
           <div className="lg:col-span-2 space-y-4">
-            <div className="flex items-center gap-3 cursor-pointer">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-500 flex items-center justify-center text-white text-lg font-bold shadow-lg shadow-blue-500/20">
+            <Link to="/" className="flex items-center gap-3 w-fit group">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-500 flex items-center justify-center text-white text-lg font-bold shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform">
                 ✈️
               </div>
               <div>
@@ -30,7 +31,7 @@ const Footer = () => {
                   Explore Without Limits
                 </p>
               </div>
-            </div>
+            </Link>
 
             <p className="text-sm text-gray-400 leading-relaxed max-w-sm">
               Discover extraordinary destinations, curated travel packages, and seamless booking experiences tailored just for you.
@@ -38,16 +39,16 @@ const Footer = () => {
 
             {/* Social Icons */}
             <div className="flex items-center gap-3 pt-2">
-              <a href="#instagram" className="w-9 h-9 rounded-full bg-gray-800 hover:bg-cyan-500 hover:text-white flex items-center justify-center transition-all duration-300 text-gray-400">
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="w-9 h-9 rounded-full bg-gray-800 hover:bg-cyan-500 hover:text-white flex items-center justify-center transition-all duration-300 text-gray-400">
                 <FaInstagram className="text-sm" />
               </a>
-              <a href="#twitter" className="w-9 h-9 rounded-full bg-gray-800 hover:bg-cyan-500 hover:text-white flex items-center justify-center transition-all duration-300 text-gray-400">
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter" className="w-9 h-9 rounded-full bg-gray-800 hover:bg-cyan-500 hover:text-white flex items-center justify-center transition-all duration-300 text-gray-400">
                 <FaTwitter className="text-sm" />
               </a>
-              <a href="#facebook" className="w-9 h-9 rounded-full bg-gray-800 hover:bg-cyan-500 hover:text-white flex items-center justify-center transition-all duration-300 text-gray-400">
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="w-9 h-9 rounded-full bg-gray-800 hover:bg-cyan-500 hover:text-white flex items-center justify-center transition-all duration-300 text-gray-400">
                 <FaFacebookF className="text-sm" />
               </a>
-              <a href="#youtube" className="w-9 h-9 rounded-full bg-gray-800 hover:bg-cyan-500 hover:text-white flex items-center justify-center transition-all duration-300 text-gray-400">
+              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="w-9 h-9 rounded-full bg-gray-800 hover:bg-cyan-500 hover:text-white flex items-center justify-center transition-all duration-300 text-gray-400">
                 <FaYoutube className="text-sm" />
               </a>
             </div>
@@ -57,11 +58,21 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="text-white font-semibold text-base tracking-wide">Quick Links</h3>
             <ul className="space-y-2.5 text-sm">
-              <li><a href="#home" className="hover:text-cyan-400 transition">Home</a></li>
-              <li><a href="#about" className="hover:text-cyan-400 transition">About Us</a></li>
-              <li><a href="#popular" className="hover:text-cyan-400 transition">Popular Destinations</a></li>
-              <li><a href="#packages" className="hover:text-cyan-400 transition">Tour Packages</a></li>
-              <li><a href="#contact" className="hover:text-cyan-400 transition">Contact Us</a></li>
+              <li>
+                <Link to="/" className="hover:text-cyan-400 transition">Home</Link>
+              </li>
+              <li>
+                <Link to="/about" className="hover:text-cyan-400 transition">About Us</Link>
+              </li>
+              <li>
+                <Link to="/destinations" className="hover:text-cyan-400 transition">Popular Destinations</Link>
+              </li>
+              <li>
+                <Link to="/packages" className="hover:text-cyan-400 transition">Tour Packages</Link>
+              </li>
+              <li>
+                <Link to="/contact" className="hover:text-cyan-400 transition">Contact Us</Link>
+              </li>
             </ul>
           </div>
 
@@ -99,6 +110,7 @@ const Footer = () => {
                 />
                 <button
                   type="submit"
+                  aria-label="Subscribe to newsletter"
                   className="absolute right-1.5 top-1.5 bottom-1.5 bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-3 rounded-lg flex items-center justify-center hover:scale-105 transition-all"
                 >
                   <FaPaperPlane className="text-xs" />
@@ -113,9 +125,9 @@ const Footer = () => {
         <div className="pt-8 flex flex-col md:flex-row items-center justify-between text-xs text-gray-500 gap-4">
           <p>© {new Date().getFullYear()} TravelGo Inc. All rights reserved.</p>
           <div className="flex gap-6">
-            <a href="#privacy" className="hover:text-gray-400 transition">Privacy Policy</a>
-            <a href="#terms" className="hover:text-gray-400 transition">Terms of Service</a>
-            <a href="#cookies" className="hover:text-gray-400 transition">Cookie Settings</a>
+            <Link to="/privacy-policy" className="hover:text-gray-400 transition">Privacy Policy</Link>
+            <Link to="/terms" className="hover:text-gray-400 transition">Terms of Service</Link>
+            <Link to="/faqs" className="hover:text-gray-400 transition">Help & FAQs</Link>
           </div>
         </div>
       </div>

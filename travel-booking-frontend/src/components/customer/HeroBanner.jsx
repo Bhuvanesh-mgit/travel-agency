@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaInstagram, FaTwitter, FaFacebookF, FaArrowRight, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 
 const HeroBanner = () => {
   const [slides, setSlides] = useState([]);
@@ -123,10 +124,12 @@ const HeroBanner = () => {
             {activeSlide.description}
           </p>
           <div className="flex justify-center lg:justify-start pt-2">
-            <button className="flex items-center gap-2 bg-white text-black px-6 py-3 rounded-full font-semibold text-sm hover:bg-gray-100 transition shadow-lg group cursor-pointer">
-              <span>Explore Destination</span>
-              <FaArrowRight className="text-xs transition-transform group-hover:translate-x-1" />
-            </button>
+            <Link to="/destinations">
+              <button className="flex items-center gap-2 bg-white text-black px-6 py-3 rounded-full font-semibold text-sm hover:bg-gray-100 transition shadow-lg group cursor-pointer">
+                <span>Explore Destination</span>
+                <FaArrowRight className="text-xs transition-transform group-hover:translate-x-1" />
+              </button>
+            </Link>
           </div>
         </div>
 
