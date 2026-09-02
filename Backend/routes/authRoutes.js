@@ -8,7 +8,7 @@ import {
   updateUser,
   deleteUser,
 } from '../controllers/authController.js';
-import { protect } from '../MiddleWare/authMiddleware.js';
+import { protect } from '../MiddleWare/AuthMiddleware.js';
 
 const router = express.Router();
 
