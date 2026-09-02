@@ -1,5 +1,5 @@
 import Package from '../models/packageModel.js';
-import { uploadMedia, cloudinary } from '../middleWare/Multer.js';
+import { uploadMedia, cloudinary } from '../middleware/multer.js';
 import fs from 'fs';
 import path from 'path';
 
