@@ -16,7 +16,9 @@ import {
   FaMoneyBillWave,
   FaLock,
   FaQuestionCircle,
-  FaHandsHelping
+  FaHandsHelping,
+  FaBars,
+  FaTimes
 } from 'react-icons/fa';
 
 export default function Navbar() {
@@ -27,13 +29,22 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
 
   const dropdownRef = useRef(null);
   const aboutRef = useRef(null);
+  const mobileMenuRef = useRef(null);
 
   // Check if current route is Home page
   const isHomePage = location.pathname === '/';
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+    setProfileOpen(false);
+    setAboutOpen(false);
+  }, [location.pathname]);
 
   // Handle Navbar background change on scroll
   useEffect(() => {
@@ -93,7 +104,7 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* Navigation Links */}
+        {/* Desktop Navigation Links */}
         <nav className="hidden md:flex items-center gap-7 text-xs font-bold uppercase tracking-wider">
           <Link
             to="/"
@@ -138,7 +149,6 @@ export default function Navbar() {
               />
             </button>
 
-            {/* Clean Standard About Popover Dropdown */}
             {aboutOpen && (
               <div className="absolute left-0 mt-3 w-56 rounded-xl bg-white text-slate-800 shadow-xl border border-slate-100 p-1.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150 normal-case font-medium text-xs">
                 <Link
@@ -149,7 +159,6 @@ export default function Navbar() {
                   <FaInfoCircle className="text-slate-400 text-sm" />
                   <span>About Us</span>
                 </Link>
-
                 <Link
                   to="/cancellation-policy"
                   onClick={() => setAboutOpen(false)}
@@ -158,7 +167,6 @@ export default function Navbar() {
                   <FaMoneyBillWave className="text-slate-400 text-sm" />
                   <span>Cancellation & Refunds</span>
                 </Link>
-
                 <Link
                   to="/terms"
                   onClick={() => setAboutOpen(false)}
@@ -167,7 +175,6 @@ export default function Navbar() {
                   <FaFileContract className="text-slate-400 text-sm" />
                   <span>Terms & Conditions</span>
                 </Link>
-
                 <Link
                   to="/privacy-policy"
                   onClick={() => setAboutOpen(false)}
@@ -176,7 +183,6 @@ export default function Navbar() {
                   <FaLock className="text-slate-400 text-sm" />
                   <span>Privacy Policy</span>
                 </Link>
-
                 <Link
                   to="/safety"
                   onClick={() => setAboutOpen(false)}
@@ -185,7 +191,6 @@ export default function Navbar() {
                   <FaHandsHelping className="text-slate-400 text-sm" />
                   <span>Safety & Trust</span>
                 </Link>
-
                 <Link
                   to="/faqs"
                   onClick={() => setAboutOpen(false)}
@@ -208,10 +213,9 @@ export default function Navbar() {
           </Link>
         </nav>
 
-        {/* User / Auth Actions */}
+        {/* User / Auth Actions & Mobile Hamburger */}
         <div className="flex items-center gap-3">
           {user ? (
-            /* Refined Profile Dropdown */
             <div className="relative" ref={dropdownRef}>
               <button
                 type="button"
@@ -235,11 +239,8 @@ export default function Navbar() {
                 />
               </button>
 
-              {/* Sleek Modern Dropdown Card */}
               {profileOpen && (
                 <div className="absolute right-0 mt-3 w-64 rounded-2xl bg-white text-slate-800 shadow-2xl border border-slate-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                  
-                  {/* User Info Header */}
                   <div className="p-4 bg-slate-50/80 border-b border-slate-100 flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-blue-500/20">
                       {user.name ? user.name.charAt(0) : 'U'}
@@ -254,7 +255,6 @@ export default function Navbar() {
                     </div>
                   </div>
 
-                  {/* Menu Items */}
                   <div className="p-2 space-y-0.5">
                     {isAdminOrStaff ? (
                       <Link
@@ -275,7 +275,6 @@ export default function Navbar() {
                           <FaUser className="text-slate-400 text-sm" />
                           View Profile
                         </Link>
-
                         <Link
                           to="/booking-history"
                           onClick={() => setProfileOpen(false)}
@@ -284,7 +283,6 @@ export default function Navbar() {
                           <FaSuitcase className="text-slate-400 text-sm" />
                           My Bookings
                         </Link>
-
                         <Link
                           to="/settings"
                           onClick={() => setProfileOpen(false)}
@@ -296,18 +294,13 @@ export default function Navbar() {
                       </>
                     )}
 
-                    {/* Quick Theme Toggle Option */}
                     <button
                       type="button"
                       onClick={() => setDarkMode(!darkMode)}
                       className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
                     >
                       <span className="flex items-center gap-2.5">
-                        {darkMode ? (
-                          <FaSun className="text-amber-500 text-sm" />
-                        ) : (
-                          <FaMoon className="text-slate-400 text-sm" />
-                        )}
+                        {darkMode ? <FaSun className="text-amber-500 text-sm" /> : <FaMoon className="text-slate-400 text-sm" />}
                         Appearance
                       </span>
                       <span className="text-[10px] uppercase font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">
@@ -316,7 +309,6 @@ export default function Navbar() {
                     </button>
                   </div>
 
-                  {/* Logout Action */}
                   <div className="p-2 border-t border-slate-100 bg-slate-50/50">
                     <button
                       type="button"
@@ -327,18 +319,15 @@ export default function Navbar() {
                       Sign Out
                     </button>
                   </div>
-
                 </div>
               )}
             </div>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="hidden sm:flex items-center gap-2">
               <Link
                 to="/auth/login"
                 className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                  isTransparent
-                    ? 'text-white hover:bg-white/10'
-                    : 'text-slate-700 hover:bg-slate-100'
+                  isTransparent ? 'text-white hover:bg-white/10' : 'text-slate-700 hover:bg-slate-100'
                 }`}
               >
                 Sign In
@@ -351,9 +340,83 @@ export default function Navbar() {
               </Link>
             </div>
           )}
+
+          {/* Mobile Menu Toggle Button */}
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className={`md:hidden p-2.5 rounded-xl border transition-colors ${
+              isTransparent
+                ? 'bg-white/10 border-white/20 text-white hover:bg-white/20'
+                : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+            }`}
+            aria-label="Toggle Navigation Menu"
+          >
+            {mobileMenuOpen ? <FaTimes className="text-lg" /> : <FaBars className="text-lg" />}
+          </button>
         </div>
 
       </div>
+
+      {/* Mobile Dropdown Menu Drawer */}
+      {mobileMenuOpen && (
+        <div className="md:hidden absolute top-full left-0 right-0 bg-white text-slate-800 shadow-2xl border-t border-slate-100 p-4 space-y-3 z-50 animate-in fade-in slide-in-from-top-2 duration-200 max-h-[85vh] overflow-y-auto">
+          <div className="flex flex-col space-y-2 text-xs font-bold uppercase tracking-wider">
+            <Link to="/" className="px-3 py-2.5 rounded-xl hover:bg-slate-50 text-slate-700">
+              Home
+            </Link>
+            <Link to="/destinations" className="px-3 py-2.5 rounded-xl hover:bg-slate-50 text-slate-700">
+              Popular Destinations
+            </Link>
+            <Link to="/packages" className="px-3 py-2.5 rounded-xl hover:bg-slate-50 text-slate-700">
+              All Packages
+            </Link>
+            
+            <div className="border-t border-slate-100 pt-2 pb-1 text-slate-400 text-[10px]">Company & Policies</div>
+            <Link to="/about" className="px-3 py-2 rounded-lg hover:bg-slate-50 text-slate-600 normal-case font-medium">
+              About Us
+            </Link>
+            <Link to="/cancellation-policy" className="px-3 py-2 rounded-lg hover:bg-slate-50 text-slate-600 normal-case font-medium">
+              Cancellation & Refunds
+            </Link>
+            <Link to="/terms" className="px-3 py-2 rounded-lg hover:bg-slate-50 text-slate-600 normal-case font-medium">
+              Terms & Conditions
+            </Link>
+            <Link to="/privacy-policy" className="px-3 py-2 rounded-lg hover:bg-slate-50 text-slate-600 normal-case font-medium">
+              Privacy Policy
+            </Link>
+            <Link to="/safety" className="px-3 py-2 rounded-lg hover:bg-slate-50 text-slate-600 normal-case font-medium">
+              Safety & Trust
+            </Link>
+            <Link to="/faqs" className="px-3 py-2 rounded-lg hover:bg-slate-50 text-slate-600 normal-case font-medium">
+              Help & FAQs
+            </Link>
+
+            <div className="border-t border-slate-100 pt-2">
+              <Link to="/contact" className="px-3 py-2.5 rounded-xl hover:bg-slate-50 text-slate-700 block uppercase font-bold">
+                Contact Us
+              </Link>
+            </div>
+          </div>
+
+          {!user && (
+            <div className="border-t border-slate-100 pt-3 flex flex-col gap-2">
+              <Link
+                to="/auth/login"
+                className="w-full text-center py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs"
+              >
+                Sign In
+              </Link>
+              <Link
+                to="/auth/register"
+                className="w-full text-center py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-bold text-xs shadow-md"
+              >
+                Get Started
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
     </header>
   );
 }
