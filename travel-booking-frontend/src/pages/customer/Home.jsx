@@ -4,6 +4,7 @@ import SearchBar from '../../components/SearchBar';
 import Destination from './Destination';
 import TestimonialCard from '../../components/customer/TestimonialCard';
 
+
 const Home = () => {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -15,6 +16,7 @@ const Home = () => {
 
       {/* 3. Popular Destinations Grid */}
       <Destination />
+    
       <TestimonialCard/>
     </div>
   );

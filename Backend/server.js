@@ -58,6 +58,7 @@ app.use('/api/enquiries', enquiryRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin/staff', staffRoutes);
 
+
 // 4. HEALTH CHECK ROUTE
 app.get('/', (req, res) => {
   res.send('API is running...');

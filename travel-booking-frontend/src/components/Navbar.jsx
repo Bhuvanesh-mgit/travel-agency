@@ -21,6 +21,8 @@ import {
   FaTimes
 } from 'react-icons/fa';
 
+import { toast } from 'react-toastify';
+
 export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -75,9 +77,28 @@ export default function Navbar() {
   }, []);
 
   const handleLogout = () => {
+    toast.success('Logged out successfully!', { autoClose: 2000 });
     setProfileOpen(false);
     logout();
     navigate('/auth/login');
+  };
+
+  // Protected Contact link handler for logged-out users
+ const handleContactClick = (e) => {
+    const token = localStorage.getItem('token') || user;
+    if (!token) {
+      e.preventDefault(); // Stop instant navigation
+      
+      // Trigger your toast message
+      toast.error('Please sign in to access the Contact page.', {
+        autoClose: 3000, // Show for 3 seconds
+      });
+
+      // Delay the navigation to match the toast duration
+      setTimeout(() => {
+        navigate('/auth/login');
+      }, 1900); // 1.5 seconds delay gives the user time to read the message
+    }
   };
 
   // Determine navbar styling based on route and scroll state
@@ -160,7 +181,7 @@ export default function Navbar() {
                   <span>About Us</span>
                 </Link>
                 <Link
-                  to="/cancellation-policy"
+                  to="/cancel-refund"
                   onClick={() => setAboutOpen(false)}
                   className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 hover:text-cyan-600 transition-colors"
                 >
@@ -176,7 +197,7 @@ export default function Navbar() {
                   <span>Terms & Conditions</span>
                 </Link>
                 <Link
-                  to="/privacy-policy"
+                  to="/privacy"
                   onClick={() => setAboutOpen(false)}
                   className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 hover:text-cyan-600 transition-colors"
                 >
@@ -192,7 +213,7 @@ export default function Navbar() {
                   <span>Safety & Trust</span>
                 </Link>
                 <Link
-                  to="/faqs"
+                  to="/help-faq"
                   onClick={() => setAboutOpen(false)}
                   className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 hover:text-cyan-600 transition-colors"
                 >
@@ -205,6 +226,7 @@ export default function Navbar() {
 
           <Link
             to="/contact"
+            onClick={handleContactClick}
             className={`transition-colors hover:text-cyan-500 ${
               isTransparent ? 'text-white/90' : 'text-slate-600'
             }`}
@@ -376,24 +398,28 @@ export default function Navbar() {
             <Link to="/about" className="px-3 py-2 rounded-lg hover:bg-slate-50 text-slate-600 normal-case font-medium">
               About Us
             </Link>
-            <Link to="/cancellation-policy" className="px-3 py-2 rounded-lg hover:bg-slate-50 text-slate-600 normal-case font-medium">
+            <Link to="/cancel-refund" className="px-3 py-2 rounded-lg hover:bg-slate-50 text-slate-600 normal-case font-medium">
               Cancellation & Refunds
             </Link>
             <Link to="/terms" className="px-3 py-2 rounded-lg hover:bg-slate-50 text-slate-600 normal-case font-medium">
               Terms & Conditions
             </Link>
-            <Link to="/privacy-policy" className="px-3 py-2 rounded-lg hover:bg-slate-50 text-slate-600 normal-case font-medium">
+            <Link to="/privacy" className="px-3 py-2 rounded-lg hover:bg-slate-50 text-slate-600 normal-case font-medium">
               Privacy Policy
             </Link>
             <Link to="/safety" className="px-3 py-2 rounded-lg hover:bg-slate-50 text-slate-600 normal-case font-medium">
               Safety & Trust
             </Link>
-            <Link to="/faqs" className="px-3 py-2 rounded-lg hover:bg-slate-50 text-slate-600 normal-case font-medium">
+            <Link to="/help-faq" className="px-3 py-2 rounded-lg hover:bg-slate-50 text-slate-600 normal-case font-medium">
               Help & FAQs
             </Link>
 
             <div className="border-t border-slate-100 pt-2">
-              <Link to="/contact" className="px-3 py-2.5 rounded-xl hover:bg-slate-50 text-slate-700 block uppercase font-bold">
+              <Link 
+                to="/contact" 
+                onClick={handleContactClick}
+                className="px-3 py-2.5 rounded-xl hover:bg-slate-50 text-slate-700 block uppercase font-bold"
+              >
                 Contact Us
               </Link>
             </div>

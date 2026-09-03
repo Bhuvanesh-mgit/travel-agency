@@ -11,7 +11,7 @@ import {
   FiLoader 
 } from 'react-icons/fi';
 
-const API_URL = 'http://localhost:5000/api/enquiries'; // Adjust to your backend enquiry/contact route
+const API_URL = 'http://localhost:5000/api/enquiries';
 
 const Enquiry = () => {
   const [enquiries, setEnquiries] = useState([]);
@@ -47,7 +47,7 @@ const Enquiry = () => {
 
       setEnquiries(data.data || data.enquiries || []);
     } catch (err) {
-      // Fallback dummy data if backend endpoint isn't created yet so the UI renders nicely
+      // Fallback dummy data if backend endpoint is unreachable or pending
       setEnquiries([
         {
           _id: '1',
@@ -57,6 +57,7 @@ const Enquiry = () => {
           subject: 'Custom itinerary request for Bali',
           message: 'Hi, I would like to know if we can customize the Bali Tropical package to include an extra day at Ubud.',
           status: 'pending',
+          staffNotes: '',
           createdAt: '2026-08-30T10:30:00Z',
         },
         {
@@ -67,19 +68,20 @@ const Enquiry = () => {
           subject: 'Payment refund policy',
           message: 'What is your cancellation policy if my flight gets delayed by 24 hours?',
           status: 'resolved',
+          staffNotes: 'Explained cancellation terms via phone call.',
           createdAt: '2026-08-28T14:15:00Z',
         },
       ]);
-      setError(null); // Keep dashboard functional even if route is pending
+      setError(null);
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle status update
+  // Handle status update (matches backend PUT /api/enquiries/:id route)
   const handleUpdateStatus = async (id, newStatus) => {
     try {
-      const response = await fetch(`${API_URL}/${id}/status`, {
+      const response = await fetch(`${API_URL}/${id}`, {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify({ status: newStatus }),
@@ -95,8 +97,34 @@ const Enquiry = () => {
         setSelectedEnquiry(prev => ({ ...prev, status: newStatus }));
       }
     } catch (err) {
-      // Local state update fallback for smooth UX
+      // Local state fallback for smooth UI interaction
       setEnquiries(enquiries.map(item => item._id === id ? { ...item, status: newStatus } : item));
+      if (selectedEnquiry && selectedEnquiry._id === id) {
+        setSelectedEnquiry(prev => ({ ...prev, status: newStatus }));
+      }
+    }
+  };
+
+  // Handle staff notes update
+  const handleUpdateNotes = async (id, notes) => {
+    try {
+      const response = await fetch(`${API_URL}/${id}`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ staffNotes: notes }),
+      });
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Failed to update notes');
+      }
+
+      setEnquiries(enquiries.map(item => item._id === id ? { ...item, staffNotes: notes } : item));
+      if (selectedEnquiry && selectedEnquiry._id === id) {
+        setSelectedEnquiry(prev => ({ ...prev, staffNotes: notes }));
+      }
+    } catch (err) {
+      setEnquiries(enquiries.map(item => item._id === id ? { ...item, staffNotes: notes } : item));
     }
   };
 
@@ -166,8 +194,9 @@ const Enquiry = () => {
           >
             <option value="all">All Enquiries</option>
             <option value="pending">Pending</option>
-            <option value="in-progress">In Progress</option>
+            <option value="in_progress">In Progress</option>
             <option value="resolved">Resolved</option>
+            <option value="closed">Closed</option>
           </select>
         </div>
       </div>
@@ -207,12 +236,14 @@ const Enquiry = () => {
                           className={`px-2.5 py-1 rounded-full text-xs font-semibold uppercase ${
                             item.status === 'resolved'
                               ? 'bg-green-100 text-green-700'
-                              : item.status === 'in-progress'
+                              : item.status === 'in_progress'
                               ? 'bg-blue-100 text-blue-700'
+                              : item.status === 'closed'
+                              ? 'bg-gray-100 text-gray-600'
                               : 'bg-amber-100 text-amber-700'
                           }`}
                         >
-                          {item.status || 'pending'}
+                          {item.status ? item.status.replace('_', ' ') : 'pending'}
                         </span>
                       </td>
                       <td className="p-4 text-xs text-gray-500">
@@ -249,10 +280,10 @@ const Enquiry = () => {
         )}
       </div>
 
-      {/* View Enquiry Modal */}
+      {/* View & Edit Enquiry Modal */}
       {selectedEnquiry && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden max-h-[90vh] flex flex-col">
             <div className="flex justify-between items-center p-5 border-b border-gray-100">
               <h2 className="text-lg font-bold text-gray-800">Enquiry Details</h2>
               <button onClick={() => setSelectedEnquiry(null)} className="text-gray-400 hover:text-gray-600">
@@ -260,7 +291,7 @@ const Enquiry = () => {
               </button>
             </div>
             
-            <div className="p-6 space-y-4 text-sm text-gray-700">
+            <div className="p-6 space-y-4 text-sm text-gray-700 overflow-y-auto flex-1">
               <div>
                 <span className="text-xs font-semibold text-gray-400 uppercase">Sender Name</span>
                 <p className="font-bold text-gray-900">{selectedEnquiry.name}</p>
@@ -291,8 +322,8 @@ const Enquiry = () => {
 
               <div>
                 <span className="text-xs font-semibold text-gray-400 uppercase mb-1 block">Update Status</span>
-                <div className="flex gap-2">
-                  {['pending', 'in-progress', 'resolved'].map((s) => (
+                <div className="flex flex-wrap gap-2">
+                  {['pending', 'in_progress', 'resolved', 'closed'].map((s) => (
                     <button
                       key={s}
                       onClick={() => handleUpdateStatus(selectedEnquiry._id, s)}
@@ -302,10 +333,22 @@ const Enquiry = () => {
                           : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                     >
-                      {s.replace('-', ' ')}
+                      {s.replace('_', ' ')}
                     </button>
                   ))}
                 </div>
+              </div>
+
+              <div>
+                <span className="text-xs font-semibold text-gray-400 uppercase mb-1 block">Staff Notes</span>
+                <textarea
+                  rows="3"
+                  defaultValue={selectedEnquiry.staffNotes || ''}
+                  onBlur={(e) => handleUpdateNotes(selectedEnquiry._id, e.target.value)}
+                  placeholder="Add internal notes for staff or admin..."
+                  className="w-full p-3 border border-gray-200 rounded-lg text-xs text-gray-700 outline-none focus:border-blue-500 resize-none"
+                />
+                <span className="text-[10px] text-gray-400 mt-1 block">Notes save automatically when you click outside the box.</span>
               </div>
             </div>
 
