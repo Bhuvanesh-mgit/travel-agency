@@ -10,7 +10,7 @@ import {
 } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 
-const API_URL = 'http://localhost:5000/api/auth/customers';
+const API_URL = `${import.meta.env.VITE_API_URL || 'https://travel-agency-kmy6.onrender.com'}/api/auth/customers`;
 
 const ManageCustomer = () => {
   const [customers, setCustomers] = useState([]);

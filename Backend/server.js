@@ -1,6 +1,7 @@
 import express from 'express';
 import dns from "node:dns";
 import dotenv from 'dotenv';
+dotenv.config();
 import cors from 'cors';
 
 // Config Imports
@@ -18,13 +19,16 @@ import enquiryRoutes from './routes/enquiryRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import heroRoutes from './routes/heroRoutes.js'
 import staffRoutes from './routes/staffRoutes.js';
+import reviewRoutes from './routes/reviewRoute.js'; // Import the review routes
 
-// 1. LOAD ENV & CONNECT DB
-dotenv.config();
+// 1.  CONNECT DB
+
 connectDB();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+
 
 // 2. GLOBAL MIDDLEWARES
 const allowedOrigins = [
@@ -57,7 +61,8 @@ app.use('/api/destinations', destinationRoutes);
 app.use('/api/enquiries', enquiryRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin/staff', staffRoutes);
-
+app.use('/api/reviews', reviewRoutes); // Mount the review routes
+app.use('/api/enquiries', enquiryRoutes); // Mount the enquiry routes
 
 // 4. HEALTH CHECK ROUTE
 app.get('/', (req, res) => {

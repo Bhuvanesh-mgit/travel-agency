@@ -54,7 +54,9 @@ export const registerUser = async (req, res) => {
         id: newUser._id,
         name: newUser.name,
         email: newUser.email,
+        
         role: newUser.role,
+        avatar: newUser?.avatar || '',
         isAdmin: newUser.role === 'admin',
         isStaff: newUser.role === 'staff',
       },
@@ -128,6 +130,9 @@ export const loginUser = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        phone: user.phone || '',
+        gender: user.gender || 'other',
+        avatar: user?.avatar || '',
         role: user.role,
         isAdmin: user.role === 'admin',
         isStaff: user.role === 'staff',
@@ -152,6 +157,9 @@ export const getUserProfile = async (req, res) => {
           _id: 'admin_env_id',
           id: 'admin_env_id',
           name: 'System Administrator',
+          phone: '',
+          gender: 'other',
+          avatar: '',
           email: process.env.ADMIN_EMAIL,
           role: 'admin',
           isAdmin: true,
@@ -173,7 +181,10 @@ export const getUserProfile = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        phone: user.phone || '',
+        gender: user.gender || 'other',
         role: user.role,
+        avatar: user?.avatar || '',
         isAdmin: user.role === 'admin',
         isStaff: user.role === 'staff',
       },
@@ -244,25 +255,82 @@ export const createUser = async (req, res) => {
     return res.status(400).json({ success: false, message: error.message });
   }
 };
+// ---------------- UPDATE LOGGED-IN USER PROFILE ----------------
+export const updateProfile = async (req, res) => {
+  try {
+    const currentUserId = req.user?.id || req.user?._id;
+
+    if (currentUserId === 'admin_env_id') {
+      return res.status(400).json({
+        success: false,
+        message: 'System Administrator profile cannot be updated via client panel.',
+      });
+    }
+
+    const user = await User.findById(currentUserId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    user.name = req.body.name ? req.body.name.trim() : user.name;
+    user.phone = req.body.phone !== undefined ? req.body.phone.trim() : user.phone;
+    user.gender = req.body.gender ? req.body.gender.trim() : user.gender;
+
+    // If Multer uploaded a new image to Cloudinary, save the URL
+    if (req.file && req.file.path) {
+      user.avatar = req.file.path;
+    }
+
+    const updatedUser = await user.save();
+    const token = generateToken(updatedUser._id, updatedUser.role);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      token,
+      user: {
+        _id: updatedUser._id,
+        id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        phone: updatedUser.phone || '',
+        gender: updatedUser.gender || 'male',
+        avatar: updatedUser.avatar || '',
+        role: updatedUser.role,
+        isAdmin: updatedUser.role === 'admin',
+        isStaff: updatedUser.role === 'staff',
+      },
+    });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 
-// ---------------- UPDATE USER (FIXED) ----------------
+// ---------------- UPDATE USER (ADMIN PANEL) ----------------
 export const updateUser = async (req, res) => {
   try {
     const userId = req.params.id;
-    const { name, email, phone, role, status, password } = req.body;
+    const { name, email, phone, role, status, password, gender } = req.body;
 
     // Build update object dynamically
     const updateData = {};
     if (name) updateData.name = name.trim();
     if (email) updateData.email = email.trim().toLowerCase();
     if (phone !== undefined) updateData.phone = phone;
+    if (gender) updateData.gender = gender;
     if (role) updateData.role = role;
     if (status !== undefined) {
       updateData.isActive = status === 'Active';
     }
 
-    // If a new password is provided, we must hash it manually since findByIdAndUpdate skips pre-save hooks
+    // 🔑 If admin uploaded a new profile image file via multer
+    if (req.file && req.file.path) {
+      updateData.avatar = req.file.path;
+    }
+
+    // If a new password is provided, hash it manually
     if (password && password.trim() !== '') {
       if (password.length < 6) {
         return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });

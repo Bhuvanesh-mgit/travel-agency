@@ -1,194 +1,344 @@
-// import React, { useState, useRef, useEffect } from 'react';
-// import { FaTimes, FaPaperPlane, FaHeadset, FaRobot, FaUser } from 'react-icons/fa';
-// import PackageDetail from './PackageDetail';
+import React, { useState, useRef, useEffect } from 'react';
+import { FaTimes, FaPaperPlane, FaHeadset, FaRobot, FaUser, FaMagic, FaMapMarkedAlt } from 'react-icons/fa';
 
-// const EnquiryModal = ({ 
-//   packageName = "General Tour Enquiry", 
-//   packagesList = [PackageDetail] // Pass your actual package list array here
-// }) => {
-//   const [isOpen, setIsOpen] = useState(false);
-//   const [messages, setMessages] = useState([
-//     { 
-//       sender: 'ai', 
-//       text: `Hello! I'm your TravelGo AI assistant. Are you looking to book or learn more about "${packageName}"? Ask me about our available destinations, prices, or itineraries!` 
-//     }
-//   ]);
-//   const [inputMessage, setInputMessage] = useState('');
-//   const [isTyping, setIsTyping] = useState(false);
-  
-//   const chatEndRef = useRef(null);
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://travel-agency-kmy6.onrender.com';
+const API_BASE_URL = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
 
-//   // Auto-scroll to bottom of chat
-//   useEffect(() => {
-//     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-//   }, [messages, isTyping]);
+// Keyframes & custom Gemini-style animations
+const GlobalStyle = () => (
+  <style>{`
+    @keyframes gemini-fadeScale {
+      from { opacity: 0; transform: scale(0.94) translateY(10px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    @keyframes gemini-msgIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes gemini-shimmer {
+      0%   { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    @keyframes gemini-caret {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    @keyframes gemini-pulseDot {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1.0); }
+    }
+    .gemini-modal-in { animation: gemini-fadeScale 0.25s cubic-bezier(0.2, 0.8, 0.2, 1); }
+    .gemini-msg-in { opacity: 0; animation: gemini-msgIn 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+    .gemini-gradient-text {
+      background: linear-gradient(135deg, #1a73e8 0%, #9333ea 50%, #db2777 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .gemini-gradient-bg {
+      background: linear-gradient(135deg, #1a73e8 0%, #9333ea 50%, #db2777 100%);
+    }
+    .gemini-caret {
+      display: inline-block;
+      width: 2px;
+      margin-left: 2px;
+      background: #9333ea;
+      animation: gemini-caret 0.8s step-start infinite;
+    }
+    .dot-1 { animation: gemini-pulseDot 1.4s infinite ease-in-out both; }
+    .dot-2 { animation: gemini-pulseDot 1.4s infinite ease-in-out both 0.2s; }
+    .dot-3 { animation: gemini-pulseDot 1.4s infinite ease-in-out both 0.4s; }
+  `}</style>
+);
 
-//   const handleSendMessage = (e) => {
-//     e.preventDefault();
-//     if (!inputMessage.trim()) return;
+const TypewriterText = ({ text, animate, speed = 10 }) => {
+  const [shown, setShown] = useState(animate ? '' : text);
+  const [done, setDone] = useState(!animate);
 
-//     const userText = inputMessage;
-//     const newMessages = [...messages, { sender: 'user', text: userText }];
-//     setMessages(newMessages);
-//     setInputMessage('');
-//     setIsTyping(true);
+  useEffect(() => {
+    if (!animate) {
+      setShown(text);
+      setDone(true);
+      return;
+    }
+    setShown('');
+    setDone(false);
+    let i = 0;
+    const id = setInterval(() => {
+      i += 1;
+      setShown(text.slice(0, i));
+      if (i >= text.length) {
+        clearInterval(id);
+        setDone(true);
+      }
+    }, speed);
+    return () => clearInterval(id);
+  }, [text, animate, speed]);
 
-//     // Dynamic AI response generation based on packagesList
-//     setTimeout(() => {
-//       let aiResponse = "Got it! Our travel experts are reviewing your preference and will email you a custom itinerary shortly.";
-//       const lower = userText.toLowerCase();
+  return (
+    <span className="whitespace-pre-line">
+      {shown}
+      {!done && <span className="gemini-caret">&nbsp;</span>}
+    </span>
+  );
+};
 
-//       // Check if user is asking about a specific package from the list
-//       const matchedPackage = packagesList.find(pkg => 
-//         lower.includes(pkg.title.toLowerCase()) || 
-//         (pkg.locationName && lower.includes(pkg.locationName.toLowerCase()))
-//       );
+const EnquiryModal = ({
+  packageName = "General Tour Enquiry",
+  packageId = null
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState([
+    {
+      sender: 'ai',
+      text: `Hello! I'm your TravelGo AI assistant. Are you looking to book or learn more about "${packageName}"? Ask me about our available destinations, prices, or itineraries!`
+    }
+  ]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [packagesList, setPackagesList] = useState([]);
 
-//       if (matchedPackage) {
-//         aiResponse = `Yes! "${matchedPackage.title}" is available. It's located in ${matchedPackage.locationName || 'a prime destination'} and priced at $${matchedPackage.price}. Would you like me to register an enquiry for this?`;
-//       } else if (lower.includes('price') || lower.includes('cost') || lower.includes('budget') || lower.includes('list')) {
-//         if (packagesList.length > 0) {
-//           const packageSummaries = packagesList.map(p => `• ${p.title} ($${p.price})`).join('\n');
-//           aiResponse = `Here are some of our current packages:\n${packageSummaries}\n\nWould you like details on any of these?`;
-//         } else {
-//           aiResponse = "Our tour packages feature competitive rates starting from budget-friendly options up to luxury escapes. Let me know what your budget looks like!";
-//         }
-//       } else if (lower.includes('date') || lower.includes('when') || lower.includes('time')) {
-//         aiResponse = "We have departures available year-round with flexible scheduling. What specific month or dates are you planning to travel?";
-//       } else if (lower.includes('hotel') || lower.includes('stay') || lower.includes('resort')) {
-//         aiResponse = "All our featured packages include handpicked 4-star and 5-star resort accommodations with daily breakfast and guided tours included.";
-//       }
+  const chatEndRef = useRef(null);
 
-//       setMessages([...newMessages, { sender: 'ai', text: aiResponse }]);
-//       setIsTyping(false);
-//     }, 1000);
-//   };
+  useEffect(() => {
+    const fetchPackagesForAI = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/packages`);
+        const data = await res.json();
+        if (res.ok && data.success) {
+          setPackagesList(data.data || data.packages || []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch packages for AI context:', err);
+      }
+    };
+    fetchPackagesForAI();
+  }, []);
 
-//   return (
-//     <>
-//       {/* 1. Floating "Enquire Now" Button Fixed to the Left Side */}
-//       <div className="fixed left-0 top-1/2 -translate-y-1/2 z-40 hidden sm:block">
-//         <button
-//           type="button"
-//           onClick={() => setIsOpen(true)}
-//           className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-bold text-xs uppercase tracking-wider py-3.5 px-3.5 rounded-r-2xl shadow-xl hover:pl-5 transition-all duration-300 flex items-center gap-2 group border border-l-0 border-white/25"
-//           style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
-//         >
-//           <FaHeadset className="text-sm rotate-10 group-hover:scale-110 transition-transform" />
-//           <span>AI Enquire Now</span>
-//         </button>
-//       </div>
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isTyping]);
 
-//       {/* Mobile Floating Button (Bottom-Left) */}
-//       <div className="fixed left-4 bottom-6 z-40 sm:hidden">
-//         <button
-//           type="button"
-//           onClick={() => setIsOpen(true)}
-//           className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white p-3.5 rounded-full shadow-2xl flex items-center justify-center hover:scale-105 transition-all"
-//           aria-label="Enquire Now"
-//         >
-//           <FaHeadset className="text-lg" />
-//         </button>
-//       </div>
+  const sendQuery = async (queryText) => {
+    if (!queryText.trim() || isTyping) return;
 
-//       {/* 2. AI Chatbot Modal Popup */}
-//       {isOpen && (
-//         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-//           <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-md h-[550px] overflow-hidden flex flex-col relative animate-in zoom-in-95 duration-200">
-            
-//             {/* Header */}
-//             <div className="bg-gradient-to-r from-blue-600 to-cyan-500 p-4 text-white flex items-center justify-between shrink-0">
-//               <div className="flex items-center gap-3">
-//                 <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white text-lg shadow-inner">
-//                   <FaRobot />
-//                 </div>
-//                 <div>
-//                   <div className="flex items-center gap-1.5">
-//                     <h3 className="text-sm font-extrabold">TravelGo AI Assistant</h3>
-//                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-//                   </div>
-//                   <p className="text-[11px] text-cyan-100 truncate max-w-[200px]">
-//                     Online • Ready to help
-//                   </p>
-//                 </div>
-//               </div>
-//               <button
-//                 type="button"
-//                 onClick={() => setIsOpen(false)}
-//                 aria-label="Close modal"
-//                 className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors text-white"
-//               >
-//                 <FaTimes className="text-xs" />
-//               </button>
-//             </div>
+    const userText = queryText.trim();
+    const updatedMessages = [...messages, { sender: 'user', text: userText }];
 
-//             {/* Chat Messages Body */}
-//             <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50/50">
-//               {messages.map((msg, index) => (
-//                 <div 
-//                   key={index} 
-//                   className={`flex items-end gap-2 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-//                 >
-//                   {msg.sender === 'ai' && (
-//                     <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs shrink-0 shadow-sm">
-//                       <FaRobot />
-//                     </div>
-//                   )}
-//                   <div 
-//                     className={`max-w-[75%] px-4 py-3 rounded-2xl text-xs leading-relaxed shadow-sm whitespace-pre-line ${
-//                       msg.sender === 'user' 
-//                         ? 'bg-blue-600 text-white rounded-br-none' 
-//                         : 'bg-white text-slate-800 border border-slate-100 rounded-bl-none'
-//                     }`}
-//                   >
-//                     {msg.text}
-//                   </div>
-//                   {msg.sender === 'user' && (
-//                     <div className="w-7 h-7 rounded-full bg-slate-700 text-white flex items-center justify-center text-xs shrink-0 shadow-sm">
-//                       <FaUser />
-//                     </div>
-//                   )}
-//                 </div>
-//               ))}
+    setMessages(updatedMessages);
+    setInputMessage('');
+    setIsTyping(true);
 
-//               {isTyping && (
-//                 <div className="flex items-center gap-2 text-slate-400 text-xs italic p-2">
-//                   <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs shrink-0">
-//                     <FaRobot />
-//                   </div>
-//                   <div className="bg-white px-3 py-2 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-1">
-//                     <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce"></span>
-//                     <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce [animation-delay:0.2s]"></span>
-//                     <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce [animation-delay:0.4s]"></span>
-//                   </div>
-//                 </div>
-//               )}
-//               <div ref={chatEndRef} />
-//             </div>
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/enquiries/ai`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: userText,
+          packageTitle: packageName,
+          packageId: packageId,
+          allPackages: packagesList.map(p => ({
+            title: p.title,
+            price: p.salePrice || p.price,
+            location: p.locationName || '',
+            destination: typeof p.destination === 'object' ? (p.destination?.name || p.destination?.title || '') : String(p.destination || ''),
+            duration: p.duration,
+            itinerary: Array.isArray(p.itinerary) ? p.itinerary.map(i => `Day ${i.day || ''}: ${i.title}`).join('; ') : ''
+          }))
+        }),
+      });
 
-//             {/* Message Input Footer */}
-//             <form onSubmit={handleSendMessage} className="p-3 bg-white border-t border-slate-100 flex items-center gap-2 shrink-0">
-//               <input
-//                 type="text"
-//                 value={inputMessage}
-//                 onChange={(e) => setInputMessage(e.target.value)}
-//                 placeholder="Ask about packages, prices, or destinations..."
-//                 className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-cyan-500 focus:bg-white transition"
-//               />
-//               <button
-//                 type="submit"
-//                 aria-label="Send message"
-//                 className="w-10 h-10 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20 transition-all shrink-0"
-//               >
-//                 <FaPaperPlane className="text-xs" />
-//               </button>
-//             </form>
+      const data = await response.json();
 
-//           </div>
-//         </div>
-//       )}
-//     </>
-//   );
-// };
+      if (response.ok && data.success) {
+        setMessages([...updatedMessages, { sender: 'ai', text: data.reply }]);
+      } else {
+        setMessages([
+          ...updatedMessages,
+          { sender: 'ai', text: 'I received your question, but I am having trouble connecting right now. Please feel free to reach out via our contact page!' }
+        ]);
+      }
+    } catch (err) {
+      console.error('AI Chat Error:', err);
+      setMessages([
+        ...updatedMessages,
+        { sender: 'ai', text: 'Network connection error. Please check your internet connection and try again.' }
+      ]);
+    } finally {
+      setIsTyping(false);
+    }
+  };
 
-// export default EnquiryModal;
+  const handleSendMessage = (e) => {
+    e.preventDefault();
+    sendQuery(inputMessage);
+  };
+
+  const quickPrompts = [
+    "What is the price?",
+    "Show itinerary details",
+    "Available dates",
+    "Top recommendations"
+  ];
+
+  const lastAiIndex = (() => {
+    for (let i = messages.length - 1; i >= 0; i -= 1) {
+      if (messages[i].sender === 'ai') return i;
+    }
+    return -1;
+  })();
+
+  return (
+    <>
+      <GlobalStyle />
+
+      {/* 1. Floating Trigger Button (Desktop Left) */}
+      <div className="fixed left-0 top-1/2 -translate-y-1/2 z-40 hidden sm:block">
+        <button
+          type="button"
+          onClick={() => setIsOpen(true)}
+          className="bg-white text-stone-800 font-bold text-[11px] uppercase tracking-wider py-4 px-3.5 rounded-r-2xl shadow-xl hover:pl-6 transition-all duration-300 flex items-center gap-2.5 group border border-l-0 border-stone-200 cursor-pointer"
+          style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
+        >
+          <div className="p-1 rounded-full gemini-gradient-bg text-white shadow-xs">
+            <FaMagic className="text-xs rotate-90 group-hover:scale-110 transition-transform" />
+          </div>
+          <span className="gemini-gradient-text font-black">Travel & Go AI </span>
+        </button>
+      </div>
+
+      {/* Mobile Floating Button */}
+      <div className="fixed left-4 bottom-6 z-40 sm:hidden">
+        <button
+          type="button"
+          onClick={() => setIsOpen(true)}
+          className="gemini-gradient-bg text-white p-4 rounded-full shadow-2xl flex items-center justify-center hover:scale-105 transition-all cursor-pointer"
+          aria-label="Enquire Now"
+        >
+          <FaMagic className="text-lg" />
+        </button>
+      </div>
+
+      {/* 2. Gemini AI Chatbot Modal */}
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-xs">
+          <div className="gemini-modal-in bg-white rounded-3xl shadow-2xl border border-stone-200/80 w-full max-w-md h-[620px] overflow-hidden flex flex-col relative font-sans">
+
+            {/* Header */}
+            <div className="bg-white px-5 py-4 border-b border-stone-100 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-stone-50 border border-stone-100 flex items-center justify-center shadow-2xs">
+                  <FaMagic className="gemini-gradient-text text-base" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="text-xs sm:text-sm font-black text-stone-900 tracking-tight">Travel & Go ASSISTANT</h3>
+                    <span className="px-1.5 py-0.5 rounded-md bg-purple-50 text-purple-700 text-[9px] font-bold uppercase tracking-wider border border-purple-100">Live</span>
+                  </div>
+                  <p className="text-[10px] sm:text-[11px] text-stone-500 truncate max-w-[210px] font-medium flex items-center gap-1 mt-0.5">
+                    <FaMapMarkedAlt className="text-[10px] text-stone-400" /> {packageName}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                aria-label="Close modal"
+                className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center transition-colors text-stone-600 cursor-pointer"
+              >
+                <FaTimes className="text-xs" />
+              </button>
+            </div>
+
+            {/* Chat Messages Body */}
+            <div className="flex-1 p-4.5 overflow-y-auto space-y-4 bg-[#f8f9fa]">
+              {messages.map((msg, index) => (
+                <div
+                  key={index}
+                  className={`gemini-msg-in flex items-start gap-2.5 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  {msg.sender === 'ai' && (
+                    <div className="w-7 h-7 rounded-full gemini-gradient-bg text-white flex items-center justify-center text-[11px] shrink-0 shadow-xs mt-0.5">
+                      <FaMagic />
+                    </div>
+                  )}
+                  <div
+                    className={`max-w-[78%] px-4 py-3 rounded-2xl text-xs leading-relaxed font-normal ${
+                      msg.sender === 'user'
+                        ? 'bg-[#1f1f1f] text-white rounded-br-xs shadow-xs'
+                        : 'bg-white text-stone-800 border border-stone-200/70 rounded-bl-xs shadow-2xs'
+                    }`}
+                  >
+                    {msg.sender === 'ai' ? (
+                      <TypewriterText text={msg.text} animate={index === lastAiIndex && !isTyping} />
+                    ) : (
+                      <span className="whitespace-pre-line">{msg.text}</span>
+                    )}
+                  </div>
+                  {msg.sender === 'user' && (
+                    <div className="w-7 h-7 rounded-full bg-stone-300 text-stone-700 flex items-center justify-center text-xs shrink-0 shadow-xs mt-0.5">
+                      <FaUser />
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {isTyping && (
+                <div className="gemini-msg-in flex items-center gap-2 text-stone-400 text-xs p-2">
+                  <div className="w-7 h-7 rounded-full gemini-gradient-bg text-white flex items-center justify-center text-[11px] shrink-0 shadow-xs">
+                    <FaMagic />
+                  </div>
+                  <div className="bg-white px-3.5 py-2.5 rounded-2xl border border-stone-200/70 shadow-2xs flex items-center gap-1.5">
+                    <div className="w-2 h-2 rounded-full gemini-gradient-bg dot-1"></div>
+                    <div className="w-2 h-2 rounded-full gemini-gradient-bg dot-2"></div>
+                    <div className="w-2 h-2 rounded-full gemini-gradient-bg dot-3"></div>
+                  </div>
+                </div>
+              )}
+              <div ref={chatEndRef} />
+            </div>
+
+            {/* Quick Suggestion Chips */}
+            <div className="px-4 py-2 bg-white border-t border-stone-100 flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
+              <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider flex items-center gap-1 shrink-0">
+                <FaMagic className="gemini-gradient-text text-[10px]" /> Suggestions:
+              </span>
+              {quickPrompts.map((prompt, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => sendQuery(prompt)}
+                  disabled={isTyping}
+                  className="px-3 py-1.5 rounded-full bg-stone-50 border border-stone-200/80 hover:border-purple-300 hover:bg-purple-50/50 text-[11px] font-medium text-stone-700 transition-all shrink-0 cursor-pointer disabled:opacity-50"
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
+
+            {/* Message Input Footer */}
+            <form onSubmit={handleSendMessage} className="p-3 bg-white border-t border-stone-100 flex items-center gap-2 shrink-0">
+              <input
+                type="text"
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                placeholder="Ask Gemini anything about this trip..."
+                className="flex-1 bg-stone-100/80 border border-stone-200/80 rounded-full px-4 py-3 text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-purple-500 focus:bg-white focus:ring-2 focus:ring-purple-500/15 transition"
+              />
+              <button
+                type="submit"
+                disabled={isTyping || !inputMessage.trim()}
+                aria-label="Send message"
+                className="w-11 h-11 rounded-full gemini-gradient-bg hover:opacity-95 text-white flex items-center justify-center shadow-md shadow-purple-500/20 transition-all shrink-0 cursor-pointer disabled:opacity-40"
+              >
+                <FaPaperPlane className="text-xs" />
+              </button>
+            </form>
+
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+
+export default EnquiryModal;

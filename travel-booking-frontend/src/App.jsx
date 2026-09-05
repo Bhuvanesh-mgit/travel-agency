@@ -43,14 +43,19 @@ import ManagePayments from './pages/admin/ManagePayment';
 import ManageOffers from './pages/admin/ManageOffers';
 import ManageDestinations from './pages/admin/ManageDestination';
 import ManageStaff from './pages/admin/ManageStaff';
-import CustomerEnquiries from './pages/admin/Enquiry';
+import Enquiry from './pages/admin/Enquiry';
+// import CustomerEnquiries from './pages/admin/Enquiry';
 import Reports from './pages/admin/Report';
 
 // Fallback Page
 import NotFound from './pages/NotFound';
 import PackagesSection from './components/customer/PackageSection';
 
+
+
+
 export default function AppRoutes() {
+  
   return (
     <>
       {/* Global Toast Container for React-Toastify */}
@@ -88,6 +93,7 @@ export default function AppRoutes() {
             <Route path="/profile" element={<Profile />} />
           </Route>
         </Route>
+        
 
         {/* 3. STAFF & ADMIN SHARED ROUTES             */}
         <Route element={<ProtectedRoute allowedRoles={['admin', 'staff']} />}>
@@ -102,7 +108,8 @@ export default function AppRoutes() {
             {/* Shared Operations */}
             <Route path="packages" element={<ManagePackages />} />
             <Route path="bookings" element={<ManageBookings />} />
-            <Route path="enquiries" element={<CustomerEnquiries />} />
+            <Route path="Enquiries" element={<Enquiry />} />
+            {/* <Route path="enquiries" element={<CustomerEnquiries />} /> */}
             <Route path="destinations" element={<ManageDestinations />} />
 
             {/* Admin-Only Nested Guard */}

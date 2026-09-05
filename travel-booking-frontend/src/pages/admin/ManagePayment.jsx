@@ -8,7 +8,7 @@ import {
   FiCreditCard 
 } from 'react-icons/fi';
 
-const API_URL = 'http://localhost:5000/api/bookings'; // Fetches bookings with payment details
+const API_URL = `${import.meta.env.VITE_API_URL || 'https://travel-agency-kmy6.onrender.com'}/api/bookings`; // Fetches bookings with payment details
 
 const ManagePayment = () => {
   const [payments, setPayments] = useState([]);

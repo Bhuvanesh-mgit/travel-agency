@@ -9,8 +9,10 @@ import {
   FiCheckCircle 
 } from 'react-icons/fi';
 
-const API_BOOKINGS_URL = 'http://localhost:5000/api/bookings';
-const API_USERS_URL = 'http://localhost:5000/api/auth/customers';
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://travel-agency-kmy6.onrender.com';
+
+const API_BOOKINGS_URL = `${BASE_URL}/api/bookings`;
+const API_USERS_URL = `${BASE_URL}/api/auth/customers`;
 
 const Report = () => {
   const [bookings, setBookings] = useState([]);

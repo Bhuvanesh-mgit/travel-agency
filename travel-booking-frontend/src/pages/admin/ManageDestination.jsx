@@ -21,7 +21,7 @@ import {
 } from 'react-icons/fa';
 
 // Resolve Backend Base URL from environment variable
-const BASE_URL = import.meta.env.VITE_API_URL || '';
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://travel-agency-kmy6.onrender.com';
 // Ensures no trailing slash for clean path concatenation
 const API_BASE_URL = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
 

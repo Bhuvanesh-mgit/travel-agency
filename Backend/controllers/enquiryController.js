@@ -1,5 +1,11 @@
 import Enquiry from '../models/enquiryModel.js';
 
+
+import { GoogleGenAI } from '@google/genai';
+
+// Initialize Gemini SDK (uses process.env.GEMINI_API_KEY)
+const ai = new GoogleGenAI();
+
 // @desc    Submit a new customer enquiry
 // @route   POST /api/enquiries
 // @access  Public
@@ -111,5 +117,49 @@ export const deleteEnquiry = async (req, res) => {
     res.json({ success: true, message: 'Enquiry deleted successfully' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// 🔑 NEW: Handle AI Chat/Enquiry inside your existing controller file
+export const handleAiEnquiry = async (req, res) => {
+  try {
+    const { message, packageTitle, allPackages } = req.body;
+
+    if (!message) {
+      return res.status(400).json({ success: false, message: 'Message is required' });
+    }
+
+    // Format your database inventory list cleanly for the AI model
+    const catalogSummary = Array.isArray(allPackages) && allPackages.length > 0
+      ? allPackages.map(p => `• Package: "${p.title}" | Location: ${p.location || p.destination || 'Global'} | Price: $${p.price} | Duration: ${p.duration || 'Flexible'} | Itinerary: ${p.itinerary || 'Available'}`).join('\n')
+      : 'No packages loaded in catalog context.';
+
+    const systemPrompt = `
+      You are an expert, friendly AI Travel Assistant for "TravelGo", a premier travel booking agency. 
+      You help customers with tour enquiries, destination details, pricing, and itinerary questions based strictly on our live database inventory.
+
+      Current User Context: The user is browsing the Home page / inquiring about "${packageTitle}".
+
+      Here is our complete live database catalog of tour packages:
+      ${catalogSummary}
+
+      Instructions:
+      - Answer customer questions accurately using the package titles, exact prices, destinations, and details from the catalog above.
+      - If a user asks for recommendations, prices, or destinations, suggest specific packages from this database list.
+      - Keep responses professional, helpful, engaging, and concise.
+    `;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.6-flash',
+      contents: `${systemPrompt}\n\nCustomer Message: ${message}`,
+    });
+
+    res.status(200).json({
+      success: true,
+      reply: response.text,
+    });
+  } catch (error) {
+    console.error('DETAILED AI ERROR:', error);
+    res.status(500).json({ success: false, message: 'Failed to process AI chat response' });
   }
 };

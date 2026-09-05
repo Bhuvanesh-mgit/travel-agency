@@ -14,7 +14,7 @@ import Loader from '../../components/Loader';
 
 export default function DashBoard() {
   const { backendUrl, API_URL, token } = useAuth();
-  const baseUrl = backendUrl || API_URL || 'http://localhost:5000';
+  const baseUrl = backendUrl || API_URL || 'http://localhost:5000' || 'https://travel-agency-kmy6.onrender.com';
 
   const [stats, setStats] = useState({
     totalBookings: '0',

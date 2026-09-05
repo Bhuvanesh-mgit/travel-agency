@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaPhoneAlt, FaEnvelope, FaMapMarkerAlt, FaPaperPlane, FaRobot, FaCheckCircle, FaClock } from 'react-icons/fa';
+import { FaPhoneAlt, FaEnvelope, FaMapMarkerAlt, FaPaperPlane, FaRobot, FaCheckCircle, FaWhatsapp } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
 const ContactUs = () => {
@@ -20,18 +20,33 @@ const ContactUs = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate backend enquiry submission
+    // Simulate validation / processing delay
     setTimeout(() => {
       setIsSubmitting(false);
       setSubmitted(true);
-      toast.success('Enquiry transmitted successfully! Our team will respond shortly.');
+      toast.success('Redirecting to WhatsApp with your enquiry details!');
       
+      // 🔑 Configure your Business WhatsApp Number here (include country code without '+' sign, e.g., 91 for India)
+      const businessWhatsAppNumber = '7558915080'; 
+
+      // Format the customer message cleanly for WhatsApp
+      const whatsappMessage = 
+        `*New Customer Enquiry - TravelGo*\n\n` +
+        `*Name:* ${formData.name}\n` +
+        `*Email:* ${formData.email}\n` +
+        `*Subject/Package:* ${formData.subject}\n` +
+        `*Message:* ${formData.message}`;
+
+      // Open WhatsApp Web / App with pre-filled message
+      const whatsappUrl = `https://wa.me/${businessWhatsAppNumber}?text=${encodeURIComponent(whatsappMessage)}`;
+      window.open(whatsappUrl, '_blank');
+
       // Reset form after a brief moment
       setTimeout(() => {
         setFormData({ name: '', email: '', subject: '', message: '' });
         setSubmitted(false);
       }, 3000);
-    }, 1200);
+    }, 1000);
   };
 
   return (
@@ -43,14 +58,14 @@ const ContactUs = () => {
 
       {/* Header Section */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-16 text-center relative z-10">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-700 text-xs font-mono uppercase tracking-widest mb-4 shadow-sm">
-          <FaRobot className="text-sm text-cyan-600 animate-pulse" /> 24/7 AI & Human Support Desk
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-700 text-xs font-mono uppercase tracking-widest mb-4 shadow-xs">
+          <FaRobot className="text-sm text-cyan-600 animate-pulse" /> 24/7 AI & Instant WhatsApp Dispatch
         </div>
         <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
           Get in Touch With Us
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 mt-3 max-w-xl mx-auto">
-          Have questions regarding an itinerary, booking status, or custom package? Transmit your query below for instant routing.
+          Have questions regarding an itinerary, booking status, or custom package? Submit your query below to chat instantly via WhatsApp.
         </p>
       </div>
 
@@ -60,8 +75,8 @@ const ContactUs = () => {
         {/* Left Side: Contact Information Cards */}
         <div className="space-y-4 lg:col-span-1">
           
-          <div className="bg-white/80 backdrop-blur-xl p-6 rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-200/50 flex items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-lg shrink-0 shadow-sm">
+          <div className="bg-white/85 backdrop-blur-xl p-6 rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-200/50 flex items-start gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-lg shrink-0 shadow-xs">
               <FaMapMarkerAlt />
             </div>
             <div>
@@ -72,8 +87,8 @@ const ContactUs = () => {
             </div>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-xl p-6 rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-200/50 flex items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg shrink-0 shadow-sm">
+          <div className="bg-white/85 backdrop-blur-xl p-6 rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-200/50 flex items-start gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg shrink-0 shadow-xs">
               <FaPhoneAlt />
             </div>
             <div>
@@ -84,33 +99,23 @@ const ContactUs = () => {
             </div>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-xl p-6 rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-200/50 flex items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg shrink-0 shadow-sm">
-              <FaEnvelope />
+          <div className="bg-white/85 backdrop-blur-xl p-6 rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-200/50 flex items-start gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg shrink-0 shadow-xs">
+              <FaWhatsapp />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-900">Secure Dispatch</h3>
+              <h3 className="text-sm font-bold text-slate-900">WhatsApp Instant Chat</h3>
               <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                support@travelgo.com<br />enquiries@travelgo.com
+                Send form details directly to our WhatsApp support team instantly.
               </p>
             </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-blue-600 to-cyan-500 p-6 rounded-3xl text-white shadow-xl shadow-blue-500/10 space-y-2">
-            <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-cyan-100">
-              <FaClock /> Response Time
-            </div>
-            <h4 className="text-base font-bold">Under 2 Hours</h4>
-            <p className="text-xs text-blue-100 leading-relaxed">
-              Our AI assistant processes enquiries instantaneously, followed by human travel expert verification.
-            </p>
           </div>
 
         </div>
 
         {/* Right Side: Interactive Enquiry Form */}
-        <div className="lg:col-span-2 bg-white/80 backdrop-blur-xl p-8 sm:p-10 rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-200/50">
-          <h2 className="text-xl font-extrabold text-slate-900 mb-6">Send an Official Enquiry</h2>
+        <div className="lg:col-span-2 bg-white/85 backdrop-blur-xl p-8 sm:p-10 rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-200/50">
+          <h2 className="text-xl font-extrabold text-slate-900 mb-6">Send an Enquiry via WhatsApp</h2>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             
@@ -123,7 +128,7 @@ const ContactUs = () => {
                   required
                   value={formData.name}
                   onChange={handleChange}
-                  placeholder="e.g. Bhuvanesh"
+                  placeholder="e.g. Enter your full name"
                   className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-cyan-500 focus:bg-white transition"
                 />
               </div>
@@ -136,7 +141,7 @@ const ContactUs = () => {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="name@example.com"
+                  placeholder="Enter your email address"
                   className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-cyan-500 focus:bg-white transition"
                 />
               </div>
@@ -150,7 +155,7 @@ const ContactUs = () => {
                 required
                 value={formData.subject}
                 onChange={handleChange}
-                placeholder="e.g. Booking Enquiry for Bangkok Tour Package"
+                placeholder="e.g. Enter the subject or package you're interested in"
                 className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-cyan-500 focus:bg-white transition"
               />
             </div>
@@ -163,7 +168,7 @@ const ContactUs = () => {
                 rows={5}
                 value={formData.message}
                 onChange={handleChange}
-                placeholder="Describe your travel dates, group size, or specific requirements..."
+                placeholder="Describe what you're looking for..."
                 className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-cyan-500 focus:bg-white transition resize-none"
               />
             </div>
@@ -171,23 +176,23 @@ const ContactUs = () => {
             <button
               type="submit"
               disabled={isSubmitting || submitted}
-              className={`w-full py-4 rounded-2xl font-bold text-xs uppercase tracking-wider shadow-lg transition-all flex items-center justify-center gap-2 ${
+              className={`w-full py-4 rounded-2xl font-bold text-xs uppercase tracking-wider shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer ${
                 submitted 
                   ? 'bg-emerald-600 text-white shadow-emerald-500/20' 
-                  : 'bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white shadow-blue-500/25 hover:scale-[1.01] active:scale-[0.99]'
+                  : 'bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white shadow-emerald-500/25 hover:scale-[1.01] active:scale-[0.99]'
               }`}
             >
               {submitted ? (
                 <>
-                  <FaCheckCircle className="text-sm" /> Transmission Successful!
+                  <FaCheckCircle className="text-sm" /> Redirecting to WhatsApp...
                 </>
               ) : isSubmitting ? (
                 <>
-                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> Transmitting Payload...
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> Preparing WhatsApp Payload...
                 </>
               ) : (
                 <>
-                  <FaPaperPlane className="text-xs" /> Submit Secure Enquiry
+                  <FaWhatsapp className="text-base" /> Send Enquiry via WhatsApp
                 </>
               )}
             </button>

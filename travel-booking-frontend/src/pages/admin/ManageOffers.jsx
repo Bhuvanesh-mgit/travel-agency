@@ -15,6 +15,9 @@ const ManageOffers = () => {
   // Cards array files (up to 3)
   const [cardFiles, setCardFiles] = useState([]);
   const [loading, setLoading] = useState(false);
+  const Backend_url = 'http://localhost:5000';
+  const baseUrl = Backend_url || import.meta.env.VITE_API_URL || 'https://travel-agency-kmy6.onrender.com/api/hero';
+
 
   useEffect(() => {
     fetchHeroes();
@@ -22,7 +25,7 @@ const ManageOffers = () => {
 
   const fetchHeroes = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/hero');
+      const res = await fetch(`${baseUrl}/api/hero`);
       const json = await res.json();
       if (json.success && Array.isArray(json.data)) {
         setHeroes(json.data);
@@ -67,7 +70,7 @@ const ManageOffers = () => {
     const token = localStorage.getItem('token') || JSON.parse(localStorage.getItem('userInfo'))?.token;
 
     try {
-      const res = await fetch('http://localhost:5000/api/hero', {
+      const res = await fetch(`${baseUrl}/api/hero`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -99,7 +102,7 @@ const ManageOffers = () => {
     const token = localStorage.getItem('token') || JSON.parse(localStorage.getItem('userInfo'))?.token;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/hero/${id}`, {
+      const res = await fetch(`${baseUrl}/api/hero/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });

@@ -3,11 +3,12 @@ import Hero from '../../components/customer/HeroBanner';
 import SearchBar from '../../components/SearchBar';
 import Destination from './Destination';
 import TestimonialCard from '../../components/customer/TestimonialCard';
+import EnquiryModal from './EnquiryModel';
 
 
 const Home = () => {
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gray-50 pb-13">
       {/* 1. Hero Banner Video Slider */}
       <Hero />
 
@@ -15,7 +16,8 @@ const Home = () => {
       <SearchBar />
 
       {/* 3. Popular Destinations Grid */}
-      <Destination />
+      <Destination  />
+      <EnquiryModal/>
     
       <TestimonialCard/>
     </div>

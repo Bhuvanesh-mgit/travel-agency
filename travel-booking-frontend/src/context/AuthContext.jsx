@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }) => {
     setIsGlobalLoading(false);
   };
 
-  useEffect(() => {
+ useEffect(() => {
     const checkAuthStatus = async () => {
       const savedUser = getStoredUser();
       const savedToken = getStoredToken();
@@ -52,7 +52,10 @@ export const AuthProvider = ({ children }) => {
           // 2. Special case: If user is the hardcoded ENV Admin with an offline/static token, do not fail on 401
           const isEnvAdmin = savedUser.id === 'admin_env_id' || savedUser._id === 'admin_env_id';
 
-          const response = await fetch(`${backendUrl}/api/auth/profile`, {
+          // 🔑 FIX: Properly evaluate base URL
+          const activeBaseUrl = backendUrl || API_URL || 'http://localhost:5000';
+
+          const response = await fetch(`${activeBaseUrl}/api/auth/profile`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
@@ -67,7 +70,7 @@ export const AuthProvider = ({ children }) => {
             if (data.success) {
               setUser(data.user);
               setToken(savedToken);
-              syncStorage(data.user, savedToken);
+              syncStorage(data.user, savedToken); // This will now properly update local storage with the full user object including the avatar!
             }
           } else if ((response.status === 401 || response.status === 403) && !isEnvAdmin) {
             // ONLY perform automatic logout if NOT an ENV admin with special token fallback
@@ -99,20 +102,49 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('token', userToken);
   };
 
-  const login = (userData, userToken) => {
+ const login = async (userData, userToken) => {
     if (!userToken) {
       console.error('Login attempted without a valid token!');
       return;
     }
-    setUser(userData);
+
     setToken(userToken);
-    syncStorage(userData, userToken);
+    localStorage.setItem('token', userToken);
+
+    try {
+      // 🔑 Instantly fetch complete profile data (including phone, gender, avatar) on login
+      const response = await fetch(`${backendUrl || API_URL || 'http://localhost:5000'}/api/auth/profile`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${userToken}`
+        }
+      });
+      const data = await response.json();
+
+      const finalUser = data.success ? data.user : userData;
+
+      setUser(finalUser);
+      localStorage.setItem('user', JSON.stringify(finalUser));
+      
+      if (typeof syncStorage === 'function') {
+        syncStorage(finalUser, userToken);
+      }
+    } catch (err) {
+      console.error('Error fetching full profile on login:', err);
+      // Fallback to basic userData if fetch fails
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+      if (typeof syncStorage === 'function') {
+        syncStorage(userData, userToken);
+      }
+    }
   };
 
   const logout = () => {
     console.trace('🚨 LOGOUT CALLED:');
     setUser(null);
     setToken(null);
+    // localStorage.removeItem('user');
     localStorage.removeItem('travel_user');
     localStorage.removeItem('userInfo');
     localStorage.removeItem('travel_token');

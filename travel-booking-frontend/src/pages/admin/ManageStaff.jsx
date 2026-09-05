@@ -5,7 +5,7 @@ import Loader from '../../components/Loader';
 
 export default function ManageStaff() {
   const { backendUrl, API_URL, token } = useAuth();
-  const baseUrl = backendUrl || API_URL || 'http://localhost:5000';
+  const baseUrl = backendUrl || API_URL || 'http://localhost:5000' || 'https://travel-agency-kmy6.onrender.com'; // Fallback to local or live backend URL
 
   const [staffList, setStaffList] = useState([]);
   const [loading, setLoading] = useState(true);

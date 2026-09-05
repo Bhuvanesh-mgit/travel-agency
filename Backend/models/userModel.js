@@ -28,6 +28,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    gender: {
+      type: String,
+      enum: ['male', 'female', 'other'],
+      default: 'male',
+    },
     role: {
       type: String,
       enum: ['customer', 'staff', 'admin'],
@@ -52,10 +57,12 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-userSchema.pre('save', async function (next) {
+// 🔑 MODERN ASYNC PRE-SAVE HOOK (No 'next' parameter needed)
+userSchema.pre('save', async function () {
   if (!this.isModified('password')) {
-    return next();
+    return;
   }
+  
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });
